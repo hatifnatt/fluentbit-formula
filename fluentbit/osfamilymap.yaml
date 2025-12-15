@@ -1,0 +1,19 @@
+---
+Debian:
+  repo:
+    prerequisites:
+      - apt-transport-https
+      - ca-certificates
+    keyring:
+      src: https://packages.fluentbit.io/fluentbit.key
+      dst: /etc/apt/keyrings/fluentbit-keyring.asc
+      skip_verify: true
+    config:
+      name: >
+        deb [signed-by=/etc/apt/keyrings/fluentbit-keyring.asc]
+        https://packages.fluentbit.io/debian/{{ grains['oscodename']|lower }} {{ grains['oscodename']|lower }} main
+      file: /etc/apt/sources.list.d/fluent-bit.list
+      # key_url: https://packages.fluentbit.io/fluentbit.key
+      clean_file: true
+
+RedHat: {}

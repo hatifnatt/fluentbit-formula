@@ -1,0 +1,71 @@
+fluentbit:
+  install: false
+  lookup:
+    path_prefix: templates
+  version: 4.2.0
+  use_upstream: repo # package, repo. Other variants are not implemented
+  # Fluent Bit is not available in most OS system repositories
+  # therefor official repository is almost mandatory
+  use_official_repo: true
+  root_user: root
+  root_group: root
+  # default config is useless therefor service also disabled by default
+  service:
+    name: fluent-bit
+    # running / dead
+    status: dead
+    # enabled / disabled
+    on_boot_state: disabled
+    # perform reload instead of restart
+    # not implemented ... yet
+    # reload: false
+  package:
+    prereq_pkgs: []
+    pkgs_extra: []
+    pkgs:
+      - fluent-bit
+    hold: false
+    update_holds: true
+    install_recommends: true
+    # reference variable
+    # official package install binary into the /opt so it's not available in PATH
+    bin: /opt/fluent-bit/bin/fluent-bit
+  # check os*.yaml files for details / examples of repo configuration
+  repo: {}
+  conf_dir: /etc/fluent-bit
+  # add `--quiet` argument when running configuration check - `--dry-run`
+  # fluent-bit -c /etc/fluent-bit/fluent-bit.conf --dry-run --quiet
+  # this will hide version info and large banner and only print check results
+  # NB Dry Run can miss errors in configuration files!
+  quiet_config_check: true
+  # yaml / classic
+  # conf_type: yaml
+  main_config:
+    # switching to yaml config by default
+    name: fluent-bit.yaml
+    source: ''
+    path_prefix: 'templates'
+    # configuration to pass to template file, `config` variable will be available inside template
+    # for yaml config it must be dictionary, for classic config it's expected to be multiple strings
+    config: {}
+    ## yaml config
+    # config:
+    #   service:
+    #     flush: 1
+    #    ...
+    ## classic config
+    # config: |
+    #   [SERVICE]
+    #       flush        1
+    #   ...
+  configs_unmanaged_purge: false
+  configs: {}
+    # recommended sub directories for various configuration types
+    # parsers: {}
+    # inputs: {}
+    # filters: {}
+    # outputs: {}
+  # relative to `conf_dir`
+  lua_scripts_dir: lua
+  lua_scripts_unmanaged_purge: false
+  lua_scripts: {}

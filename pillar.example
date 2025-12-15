@@ -1,0 +1,381 @@
+fluentbit:
+  # control via pillar will Fluent Bit be installed or not
+  install: false
+  lookup:
+    # where to search for source file / template, relative to formula root
+    # i.e. fluentbit/%path_prefix%/%source%
+    path_prefix: templates
+  version: 4.2.0
+  # Installation method selection
+  # package, repo - configure official repository, then install packages
+  # https://docs.fluentbit.io/manual/installation/downloads/linux/debian
+  # Other variants are not implemented
+  use_upstream: repo
+  # Fluent Bit is not available in most OS system repositories
+  # therefor official repository is almost mandatory
+  # Configured repository can be removed by running fluentbit.repo.clean state
+  use_official_repo: true
+  root_user: root
+  root_group: root
+  # parameters of the Fluent Bit system service
+  # default config is useless therefor service also disabled by default
+  service:
+    name: fluent-bit
+    # desired status after applying the formula
+    # possible values running / dead
+    status: dead
+    # service state after system boots up
+    # enabled / disabled
+    on_boot_state: disabled
+    # perform reload instead of restart
+    # not implemented ... yet
+    # reload: false
+  package:
+    # List of packages required for packages installation, i.e. python3-dnf-plugin-versionlock
+    # is required on RedHat family to hold packages
+    # NOTE: those packages won't be removed with fluentbit.package.clean state
+    prereq_pkgs: []
+    # List of some extra packages to install
+    # NOTE: those packages won't be removed with fluentbit.package.clean state
+    pkgs_extra: []
+    # variants
+    #
+    #pkgs:
+    #  - fluent-bit
+    #
+    #pkgs:
+    #  - fluent-bit
+    #  - some-helper-package
+    #
+    # set fluentbit.version to empty string (version: '')
+    # if you want to specify version for each package individually
+    #pkgs:
+    #  - fluent-bit: 4.2.*
+    #  - some-helper-package
+    #
+    pkgs:
+      - fluent-bit
+    hold: false
+    update_holds: true
+    install_recommends: true
+    # reference variable
+    # official package install binary into the /opt so it's not available in PATH
+    bin: /opt/fluent-bit/bin/fluent-bit
+  repo:
+    # Check osfamilymap.yaml for more examples
+    # List of packages to install before configuring Fluent Bit repository
+    # i.e. for Debian family
+    prerequisites:
+      - apt-transport-https
+      - ca-certificates
+    keyring:
+      src: https://packages.fluentbit.io/fluentbit.key
+      # Please match file name in 'keyring:dst' and in repo 'signed-by'
+      dst: /etc/apt/keyrings/fluentbit-keyring.asc
+      skip_verify: true
+    # Repository configuration will be used as pkgrepo.managed parameters
+    config:
+      name: >
+        deb [signed-by=/etc/apt/keyrings/fluentbit-keyring.asc]
+        https://packages.fluentbit.io/debian/{{ grains['oscodename']|lower }} {{ grains['oscodename']|lower }} main
+      file: /etc/apt/sources.list.d/fluent-bit.list
+      # key_url: https://packages.fluentbit.io/fluentbit.key
+      clean_file: true
+  # top level configuration directory with main configuration file
+  # all other config files will be saved relatively to this dir
+  conf_dir: /etc/fluent-bit
+  # add `--quiet` argument when running configuration check - `--dry-run`
+  # fluent-bit -c /etc/fluent-bit/fluent-bit.conf --dry-run --quiet
+  # this will hide version info and large banner and only print check results
+  # NB Dry Run can miss errors in configuration files!
+  quiet_config_check: true
+
+  # main configuration file
+  #########################
+  main_config:
+    # check notes below - how default template will be selected based on file extension
+    # using yaml configuration file by default
+    name: fluent-bit.yaml
+    # custom template file for the main config
+    # if source:
+    # - starts with 'salt://' it will be used 'as is'
+    #   this way arbitrary template from salt file server can be used
+    # - is an absolute path i.e. '/opt/fluentbit-templates/mytemplate.jinja'
+    #   local (to minion) file will be used
+    # otherwise formula will search for template in `formula_root/templates/%source%`
+    #
+    # if no value provided default template will be selected based on file extension
+    # if extension is .conf - generic.conf.jinja template will be used
+    # which simply dumps provided config 'as is'
+    # if extension is .yaml or .yml - generic.yaml.jinja template will be used
+    # it will yaml_dump data provided in config into the target file
+    source: ''
+    # where to search for source file / template, relative to formula root i.e. fluentbit/%path_prefix%/%source%
+    # usually when `path_prefix` is defined you also need to define `source` otherwise default source template
+    # will be used `default/generic.conf.jinja` - for main configuration file
+    path_prefix: 'templates'
+    # configuration to pass to template file, `config` variable will be available inside template
+    # for yaml config it must be dictionary, for classic config it's expected to be multiline string
+    config: {}
+    # # yaml config
+    # config:
+    #   service:
+    #     flush: 1
+    #     daemon: false
+    #     log_level: info
+    #     parsers_file: parsers.conf
+    #     http_server: false
+    #     http_listen: 0.0.0.0
+    #     http_port: 2020
+    #     storage.metrics: true
+    #   # Includes are not enabled by default may be you don't have any
+    #   # includes:
+    #   #   - inputs/*.yaml
+    #   #   - filters/*.yaml
+    #   #   - outputs/*.yaml
+    #   pipeline:
+    #     inputs:
+    #       - name: cpu
+    #         tag:  cpu.local
+    #         interval_sec: 30
+    #     outputs:
+    #       - name:  stdout
+    #         match: cpu.local
+    # # classic config
+    # config: |
+    #   [SERVICE]
+    #       flush        1
+    #       daemon       Off
+    #       log_level    info
+    #       parsers_file parsers.conf
+    #       plugins_file plugins.conf
+    #       http_server  Off
+    #       http_listen  0.0.0.0
+    #       http_port    2020
+    #       storage.metrics on
+    #   # Includes are not enabled by default may be you don't have any
+    #   # @INCLUDE inputs/*.conf
+    #   # @INCLUDE filters/*.conf
+    #   # @INCLUDE outputs/*.conf
+    #   [INPUT]
+    #       name cpu
+    #       tag  cpu.local
+    #       interval_sec 10
+    #   [OUTPUT]
+    #       name  stdout
+    #       match cpu.local
+
+  # config files management
+  #########################
+  # how to deal with files that exist on the minion but are not present in the pillars
+  # true - remove unmanaged config files
+  # false - don't touch unmanaged files
+  # IMPORTANT!
+  # only files (not directories) in managed config subdirs will be processed and removed i.e.
+  # if your configuration is
+  # configs:
+  #   inputs:
+  #     00_cpu_input.conf:
+  #       ensure: present
+  #       config:
+  #         pipeline:
+  #           inputs:
+  #             - name: cpu
+  #               tag:  cpu.local
+  #               interval_sec: 30
+  # then unmanaged config file 'inputs/foo.conf' will be deleted
+  # but directory 'inputs/bar/' and all it content won't be removed
+  # subdirectories relative to `conf_dir` won't be removed either if they are removed from pillars
+  # i.e. if you remove `inputs` from `configs` - directory will remain untouched with all it contents
+  # if you want to clean files from `inputs` just remove all configs defined under this key
+  configs_unmanaged_purge: false
+  # by filling data under `configs` key arbitrary configuration files
+  # in subdirectories relative to `conf_dir` can be created
+  # IMPORTANT those config files will only be loaded if you include them in main config
+  # i.e.
+  # main_config:
+  #   config:
+  #     service:
+  #       flush: 1
+  #       ...
+  #     includes:
+  #       - inputs/*.yaml
+  #       - filters/*.yaml
+  #       - outputs/*.yaml
+  #
+  # it's required to put extra configuration files into subdirectories
+  # recommended names for subdirectories are: parsers, inputs, filters, outputs
+  # to preserve order of configuration files it's recommended
+  # to add number prefix to file name like 00_my_config.conf
+  configs:
+    # subdirectory relative to `conf_dir` where config files will be placed
+    # will be created before config files
+    parsers:
+      # configuration file name
+      # resulting file path will be %conf_dir%/parsers/dummy_parser.conf
+      # for parsers order is not important skipping number prefix
+      dummy_parser.conf:
+        # possible values present / absent
+        # if not specified 'present' will be assumed
+        ensure: present
+        # default source (template) is detected by file extension
+        # if file name ends with '.conf' `fluentbit/templates/default/generic.conf.jinja` will be used
+        # if file name ends with '.yaml' or '.yml' `fluentbit/templates/default/generic.yaml.jinja` will be used
+        # if `source` is provided it will be used instead of default template
+        # optional parameter
+        source: ''
+        # where to search for source file / template, relative to formula root i.e. fluentbit/%path_prefix%/%source%
+        # usually when `path_prefix` is defined you also need to define `source` otherwise default source template
+        # will be used i.e. `default/generic.conf.jinja` - for classic configuration file
+        path_prefix: 'templates'
+        # configuration data to pass to template file
+        config: |
+          [PARSER]
+            Name dummy_test_classic
+            Format regex
+            Regex ^(?<INT>[^ ]+) (?<FLOAT>[^ ]+) (?<BOOL>[^ ]+) (?<STRING>.+)$
+      # `fluentbit/templates/default/generic.yaml.jinja` will be used for yaml files
+      dummy_parser.yaml:
+        ensure: present
+        source: ''
+        path_prefix: 'templates'
+        config:
+          parsers:
+            - name: dummy_test_yaml
+              format: regex
+              regex: '^(?<INT>[^ ]+) (?<FLOAT>[^ ]+) (?<BOOL>[^ ]+) (?<STRING>.+)$'
+      my_parsers.yaml:
+        # this file will be removed / won't be created
+        ensure: absent
+        source: default/generic.yaml.jinja
+        path_prefix: 'templates'
+        config:
+          parsers:
+            - name: custom_parser1
+              format: json
+              time_key: time
+              time_format: '%Y-%m-%dT%H:%M:%S.%L'
+              time_keep: on
+            - name: custom_parser2
+              format: regex
+              regex: '^\<(?<pri>[0-9]{1,5})\>1 (?<time>[^ ]+) (?<host>[^ ]+) (?<ident>[^ ]+) (?<pid>[-0-9]+) (?<msgid>[^ ]+) (?<extradata>(\[(.*)\]|-)) (?<message>.+)$'
+              time_key: time
+              time_format: '%Y-%m-%dT%H:%M:%S.%L'
+              time_keep: on
+              types: pid:integer
+    inputs:
+      # adding number prefix to preserver order
+      00_empty_input.conf:
+        # possible values present / absent
+        # if not specified 'present' will be assumed
+        ensure: present
+        # if `source` is provided it will be used instead of default template
+        # optional parameter
+        source: ''
+        # where to search for source file / template, relative to formula root i.e. fluentbit/%path_prefix%/%source%
+        # usually when `path_prefix` is defined you also need to define `source` otherwise default source template
+        # will be used i.e. `default/generic.conf.jinja` - for classic configuration file
+        path_prefix: 'templates'
+        # configuration data to pass to template file
+        config: |
+          # Empty INPUT config file
+      # default yaml template will be used for this configuration file
+      00_dummy_input.yaml:
+        # configuration data to pass to template file
+        config:
+          pipeline:
+            inputs:
+              - name: dummy
+                tag: dummy
+                dummy: '{"message": "custom dummy"}'
+                interval_sec: 30
+    filters:
+      # lua filter with embedded script
+      # order is especially important for filters, adding number prefix
+      00_lua_filter.yaml:
+        ensure: present
+        source: ''
+        path_prefix: 'templates'
+        # configuration data to pass to template file
+        config:
+          pipeline:
+            filters:
+              - name: lua
+                match: "*"
+                call: compare_and_remove
+                code: |
+                  function compare_and_remove(tag, timestamp, record)
+                      local systemd_unit = record["_SYSTEMD_UNIT"]
+                      local service_name = record["service.name"]
+
+                      -- Check both fields exist and their values are equal
+                      if systemd_unit and service_name and systemd_unit == service_name then
+                          -- If values are equal, remove _SYSTEMD_UNIT
+                          record["_SYSTEMD_UNIT"] = nil
+                      end
+
+                      return 1, timestamp, record
+                  end
+    outputs:
+      00_stdout_output.yaml:
+        # possible values present / absent
+        # if not specified 'present' will be assumed
+        ensure: present
+        # custom template file to use instead of default `formula_root/templates/default/generic.conf.jinja`
+        # optional parameter
+        source: ''
+        # where to search for source file / template, relative to formula root i.e. fluentbit/%path_prefix%/%source%
+        # usually when `path_prefix` is defined you also need to define `source` otherwise default source template
+        # will be used `default/generic.conf.jinja` - for generic configuration file
+        path_prefix: 'templates'
+        # configuration data to pass to template file
+        config:
+          pipeline:
+            outputs:
+              - name: stdout
+                match: dummy
+    # custom subdir for config file, same as `parsers, inputs, filters, outputs` above but with user provided name
+    # IMPORTANT do not forget to include it into main configuration
+    # i.e. with `@INCLUDE custom/*.conf` for classic configuration format
+    custom: {}
+    # nested subdirs are also supported although must be used with care,
+    # because they can be created by this formula but can not be removed by it
+    # below configuration will create `%conf_dir%/custom/nested/my.conf` config file
+    custom/nested:
+      my.conf:
+        config: |
+          [INPUT]
+            ...
+          [FILTER]
+            ...
+          [OUTPUT]
+            ...
+  # Lua scripts management
+  ###################
+  # directory where Lua scripts will be saved, relative to `conf_dir`
+  lua_scripts_dir: lua
+  # how to deal with files that exist on the minion but are not present in the pillars
+  # true - remove unmanaged snippets
+  # false - don't touch unmanaged files
+  lua_scripts_unmanaged_purge: false
+  lua_scripts:
+    empty.lua:
+      # possible values present / absent
+      # if not specified 'present' will be assumed
+      ensure: present
+      # source: ''
+      # where to search for source file / template, relative to formula root i.e. fluentbit/%path_prefix%/%source%
+      # usually when `path_prefix` is defined you also need to define `source` otherwise default source template
+      # will be used `default/generic.lua.jinja` - for Lua scripts
+      # path_prefix: 'templates'
+      # small scripts can be defined directly in pillars
+      script: |
+        -- Empty script
+    systemd_journal_set_service_name.lua:
+      ensure: present
+      # large script can be served from files
+      # with path_prefix + source values defined below
+      # salt://fluentbit/files/etc/fluent-bit/lua/systemd_journal_set_service_name.lua
+      # will be used as a `source` parameter for `file.managed`
+      source: etc/fluent-bit/lua/systemd_journal_set_service_name.lua
+      path_prefix: files

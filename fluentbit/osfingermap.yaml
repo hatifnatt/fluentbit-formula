@@ -1,0 +1,26 @@
+---
+# os: Debian
+Debian-12: {}
+Debian-11: {}
+
+Debian-10:
+  # Preserving legacy approach for Debian 10 without 'signed-by='
+  repo:
+    keyring: []
+    # keyring:
+    #   src: https://packages.fluentbit.io/fluentbit.key
+    #   dst: /etc/apt/trusted.gpg.d/fluentbit-keyring.asc
+    #   skip_verify: true
+    config:
+      humanname: Fluent Bit repo
+      name: deb https://packages.fluentbit.io/debian/{{ grains['oscodename']|lower }} {{ grains['oscodename']|lower }} main
+      file: /etc/apt/sources.list.d/fluent-bit.list
+      key_url: https://packages.fluentbit.io/fluentbit.key
+
+Debian-9: {}
+
+# os: CentOS
+CentOS Linux-8: {}
+CentOS Linux-7: {}
+
+Red Hat Enterprise Linux Server-7: {}
