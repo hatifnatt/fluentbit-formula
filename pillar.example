@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# vim: ft=yaml
+---
 fluentbit:
   # control via pillar will Fluent Bit be installed or not
   install: false
