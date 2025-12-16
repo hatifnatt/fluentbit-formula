@@ -32,9 +32,12 @@ fluentbit_service_{{ flb.service.status }}:
   service:
     - name: {{ flb.service.name }}
     - {{ flb.service.status }}
+  {#- reload is not implemented in fluent-bit systemd service file ... yet  #}
+  {#-
   {%- if flb.service.status == 'running' %}
     - reload: {{ flb.service.reload }}
   {%- endif %}
+  #}
     - require:
         - service: fluentbit_service_{{ flb.service.on_boot_state }}
     - order: last
