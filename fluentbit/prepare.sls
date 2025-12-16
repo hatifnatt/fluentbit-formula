@@ -15,3 +15,4 @@ fluentbit_prepare_backup_default_config:
     - source: "{{ flb.conf_dir ~ '/' ~ flb.main_config.name }}"
     - preserve: true
     - creates: "{{ flb.conf_dir ~ '/' ~ flb.main_config.name ~ '.example' }}"
+    - onlyif: test -f "{{ flb.conf_dir ~ '/' ~ flb.main_config.name }}"
