@@ -87,6 +87,22 @@ fluentbit:
   # top level configuration directory with main configuration file
   # all other config files will be saved relatively to this dir
   conf_dir: /etc/fluent-bit
+  # Data directories for Fluent Bit (storage, database, logs)
+  # IMPORTANT: These directories are created by the formula but NOT automatically
+  # referenced in Fluent Bit configuration. Administrator is responsible for ensuring
+  # that Fluent Bit configuration uses the same paths defined here.
+  #
+  # This approach is intentional because:
+  # - Classic configuration format is extremely difficult to parse reliably in Salt
+  # - YAML configuration format is easy to parse but not always used
+  # - Keeping directory creation separate from configuration parsing simplifies the formula
+  #
+  # directory for persistent storage/buffer data
+  storage_dir: &storage_dir /var/lib/fluent-bit/storage
+  # directory for internal database files
+  db_dir: /var/lib/fluent-bit/db
+  # directory for log files (when logging to files)
+  logs_dir: /var/log/fluent-bit
   # add `--quiet` argument when running configuration check - `--dry-run`
   # fluent-bit -c /etc/fluent-bit/fluent-bit.conf --dry-run --quiet
   # this will hide version info and large banner and only print check results
@@ -119,7 +135,16 @@ fluentbit:
     path_prefix: 'templates'
     # configuration to pass to template file, `config` variable will be available inside template
     # for yaml config it must be dictionary, for classic config it's expected to be multiline string
-    config: {}
+    config:
+      service:
+        # only minimum configuration related to storage
+        # NB it's you responsibility to correctly specify same path in formula `storage_dir` parameter
+        # and in Fluent Bit `storage.path` configuration parameter
+        # when both parameters are defined in same pillar (yaml) file
+        # it's possible to use YAML anchors to keep things more DRY
+        storage.path: *storage_dir
+        storage.sync: normal
+        storage.metrics: true
     # # yaml config
     # config:
     #   service:
