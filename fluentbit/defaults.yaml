@@ -30,6 +30,19 @@ fluentbit:
     # reference variable
     # official package install binary into the /opt so it's not available in PATH
     bin: /opt/fluent-bit/bin/fluent-bit
+  # Logrotate configuration
+  logrotate:
+    enable: true
+    package:
+      install: true
+      pkgs:
+        - logrotate
+    config:
+      rotate: 7
+      # Uncomment and set size if needed
+      # maxsize: 100M
+      # Uncomment and set script if needed
+      # postrotate_script: ""
   # check os*.yaml files for details / examples of repo configuration
   repo: {}
   conf_dir: /etc/fluent-bit
@@ -52,6 +65,9 @@ fluentbit:
     # for yaml config it must be dictionary, for classic config it's expected to be multiple strings
     config:
       service:
+        # For the logrotate configuration to work, the log file must be named fluent-bit.log
+        # and saved in the directory specified in the `logs_dir`
+        log_file: /var/log/fluent-bit/fluent-bit.log
         # only minimum configuration related to storage
         # NB it's you responsibility to correctly specify same path in formula `storage_dir` parameter
         # and in Fluent Bit `storage.path` configuration parameter

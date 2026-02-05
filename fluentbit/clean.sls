@@ -4,3 +4,4 @@ include:
 {%- if flb.use_upstream in ('repo', 'package') %}
   - {{ tplroot }}.package.clean
 {%- endif %}
+  - {{ tplroot }}.logrotate.clean

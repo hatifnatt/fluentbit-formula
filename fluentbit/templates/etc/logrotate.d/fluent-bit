@@ -1,0 +1,17 @@
+{{ logs_dir }}/fluent-bit.log {
+    rotate {{ config.rotate }}
+    daily
+    compress
+    delaycompress
+    missingok
+    notifempty
+    copytruncate
+    {%- if 'maxsize' in config and config.maxsize %}
+    maxsize {{ config.maxsize }}
+    {%- endif %}
+    {%- if 'postrotate_script' in config and config.postrotate_script %}
+    postrotate
+        {{ config.postrotate_script }}
+    endscript
+    {%- endif %}
+}

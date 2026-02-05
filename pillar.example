@@ -64,6 +64,24 @@ fluentbit:
     # reference variable
     # official package install binary into the /opt so it's not available in PATH
     bin: /opt/fluent-bit/bin/fluent-bit
+  # Logrotate configuration
+  logrotate:
+    enable: true
+    # On Debian 12, logrotate is not installed by default, so it is necessary
+    # to install it if you want to rotate logs using logrotate
+    package:
+      # you can skip logrotate installation but it most likely cause
+      # uncontrollable growth of the Fluent Bit log file
+      install: true
+      # logrotate package name
+      pkgs:
+        - logrotate
+    config:
+      rotate: 7
+      # Uncomment and set size if needed
+      # maxsize: 100M
+      # Uncomment and set script if needed
+      # postrotate_script: ""
   repo:
     # Check osfamilymap.yaml for more examples
     # List of packages to install before configuring Fluent Bit repository
