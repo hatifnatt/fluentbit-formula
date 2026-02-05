@@ -19,6 +19,7 @@ fluentbit:
     # perform reload instead of restart
     # not implemented ... yet
     # reload: false
+    args: []
   package:
     prereq_pkgs: []
     pkgs_extra: []

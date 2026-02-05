@@ -33,6 +33,10 @@ fluentbit:
     # perform reload instead of restart
     # not implemented ... yet
     # reload: false
+    # extra arguments for Fluent Bit service
+    args:
+      - --quiet
+      - --flush=1
   package:
     # List of packages required for packages installation, i.e. python3-dnf-plugin-versionlock
     # is required on RedHat family to hold packages

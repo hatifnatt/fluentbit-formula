@@ -9,7 +9,7 @@ fluentbit_service_systemd_drop-in:
     - contents: |
         [Service]
         ExecStart=
-        ExecStart=/opt/fluent-bit/bin/fluent-bit -c {{ flb.main_config_path }}
+        ExecStart={{ flb.bin }} -c {{ flb.main_config_path }}{% if flb.service.args %} {{ flb.service.args|join(' ') }}{% endif %}
 
 fluentbit_service_reload_systemd:
   module.wait:
