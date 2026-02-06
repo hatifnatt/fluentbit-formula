@@ -31,8 +31,9 @@ fluentbit:
     # enabled / disabled
     on_boot_state: disabled
     # perform reload instead of restart
-    # not implemented ... yet
-    # reload: false
+    # Note: For reload functionality to work correctly, the --enable-hot-reload argument must be enabled
+    # This is automatically added when reload: true, regardless of service.args values
+    reload: true
     # extra arguments for Fluent Bit service
     args:
       - --quiet

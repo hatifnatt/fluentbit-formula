@@ -9,7 +9,8 @@ fluentbit_service_systemd_drop-in:
     - contents: |
         [Service]
         ExecStart=
-        ExecStart={{ flb.bin }} -c {{ flb.main_config_path }}{% if flb.service.args %} {{ flb.service.args|join(' ') }}{% endif %}
+        ExecStart={{ flb.bin }} -c {{ flb.main_config_path }}{% if flb.service.reload %} --enable-hot-reload{% endif %}{% if flb.service.args %} {{ flb.service.args|join(' ') }}{% endif %}
+        ExecReload=/bin/kill -HUP $MAINPID
 
 fluentbit_service_reload_systemd:
   module.wait:
@@ -33,11 +34,9 @@ fluentbit_service_{{ flb.service.status }}:
     - name: {{ flb.service.name }}
     - {{ flb.service.status }}
   {#- reload is not implemented in fluent-bit systemd service file ... yet  #}
-  {#-
-  {%- if flb.service.status == 'running' %}
+  {%- if flb.service.status == 'running' and flb.service.reload %}
     - reload: {{ flb.service.reload }}
   {%- endif %}
-  #}
     - require:
         - service: fluentbit_service_{{ flb.service.on_boot_state }}
     - order: last

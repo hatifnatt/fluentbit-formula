@@ -17,8 +17,7 @@ fluentbit:
     # enabled / disabled
     on_boot_state: disabled
     # perform reload instead of restart
-    # not implemented ... yet
-    # reload: false
+    reload: true
     args: []
   package:
     prereq_pkgs: []
