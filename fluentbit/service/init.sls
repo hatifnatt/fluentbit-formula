@@ -24,6 +24,12 @@ fluentbit_service_reload_systemd:
     - watch:
       - file: fluentbit_service_systemd_drop-in
 
+fluentbit_service_restart_on_dropin_change:
+  service.running:
+    - name: {{ flb.service.name }}
+    - watch:
+      - file: fluentbit_service_systemd_drop-in
+
   {#- Manage on boot service state in dedicated state to ensure watch trigger properly in service.running state #}
 fluentbit_service_{{ flb.service.on_boot_state }}:
   service.{{ flb.service.on_boot_state }}:
