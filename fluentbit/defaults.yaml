@@ -19,6 +19,8 @@ fluentbit:
     # perform reload instead of restart
     reload: true
     args: []
+    # systemd drop-in template path (can be overridden)
+    systemd_drop_in_template: ''
   package:
     prereq_pkgs: []
     pkgs_extra: []

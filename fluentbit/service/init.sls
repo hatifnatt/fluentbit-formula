@@ -1,16 +1,16 @@
 {%- set tplroot = tpldir.split('/')[0] %}
 {%- from tplroot ~ '/map.jinja' import fluentbit as flb %}
+{%- from tplroot ~ '/macros.jinja' import build_source %}
 
 {%- if flb.install %}
 fluentbit_service_systemd_drop-in:
   file.managed:
     - name: "/etc/systemd/system/{{ flb.service.name }}.service.d/conf-type.conf"
     - makedirs: true
-    - contents: |
-        [Service]
-        ExecStart=
-        ExecStart={{ flb.bin }} -c {{ flb.main_config_path }}{% if flb.service.reload %} --enable-hot-reload{% endif %}{% if flb.service.args %} {{ flb.service.args|join(' ') }}{% endif %}
-        ExecReload=/bin/kill -HUP $MAINPID
+    - template: jinja
+    - source: {{ build_source(flb.service.systemd_drop_in_template, path_prefix='templates', default_source='systemd/drop-in.conf.jinja') }}
+    - context:
+        flb: {{ flb | json() }}
 
 fluentbit_service_reload_systemd:
   module.wait:

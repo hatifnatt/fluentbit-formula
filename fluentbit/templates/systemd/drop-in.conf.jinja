@@ -1,0 +1,4 @@
+[Service]
+ExecStart=
+ExecStart={{ flb.bin }} -c {{ flb.main_config_path }}{% if flb.service.reload %} --enable-hot-reload{% endif %}{% if flb.service.args %} {{ flb.service.args|join(' ') }}{% endif %}
+ExecReload=/bin/kill -HUP $MAINPID
