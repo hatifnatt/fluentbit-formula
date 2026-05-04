@@ -60,7 +60,7 @@ fluentbit_config_lua_scripts_unmanaged_snippet_<{{ snippet }}>_purge:
   file.absent:
     - name: {{ lua_scripts_path ~ '/' ~ snippet }}
     - onchanges_in:
-      - sls: fluentbit_config_check
+      - cmd: fluentbit_config_check
     - watch_in:
       - service: fluentbit_service_{{ flb.service.status }}
     {%- endfor %}
