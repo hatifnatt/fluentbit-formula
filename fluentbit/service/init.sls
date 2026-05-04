@@ -24,11 +24,20 @@ fluentbit_service_reload_systemd:
     - watch:
       - file: fluentbit_service_systemd_drop-in
 
-fluentbit_service_restart_on_dropin_change:
+  {#-
+    order: last ensures config files are written before the service is (re)started.
+    onlyif skips the restart on a fresh install (service not yet running); the first
+    start is handled by fluentbit_service_running below, also at order: last.
+  #}
+  {%- if flb.service.status == 'running' %}
+fluentbit_service_restart_on_exec_change:
   service.running:
     - name: {{ flb.service.name }}
+    - onlyif: "systemctl is-active {{ flb.service.name }}"
+    - order: last
     - watch:
       - file: fluentbit_service_systemd_drop-in
+  {%- endif %}
 
   {#- Manage on boot service state in dedicated state to ensure watch trigger properly in service.running state #}
 fluentbit_service_{{ flb.service.on_boot_state }}:

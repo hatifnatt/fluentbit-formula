@@ -41,7 +41,11 @@ fluentbit_package_install:
     - install_recommends: {{ flb.package.install_recommends }}
     {%- endif %}
     - watch_in:
+      {%- if flb.service.status == 'running' %}
+      - service: fluentbit_service_restart_on_exec_change
+      {%- else %}
       - service: fluentbit_service_{{ flb.service.status }}
+      {%- endif %}
     - require:
       - sls: {{ tplroot }}.repo.install
     - require_in:
