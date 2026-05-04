@@ -34,9 +34,10 @@ fluentbit:
     bin: /opt/fluent-bit/bin/fluent-bit
   # Logrotate configuration
   logrotate:
+    # You can skip logrotate configuration by setting this to false, but it will most likely cause
+    # uncontrollable growth of the Fluent Bit log file
     enable: true
     package:
-      install: true
       pkgs:
         - logrotate
     config:
