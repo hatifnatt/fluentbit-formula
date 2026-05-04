@@ -17,7 +17,6 @@
   * [fluentbit.prepare](#fluentbitprepare)
   * [fluentbit.config](#fluentbitconfig)
   * [fluentbit.config.lua\_scripts](#fluentbitconfiglua_scripts)
-  * [fluentbit.config.sites](#fluentbitconfigsites)
   * [fluentbit.config.check](#fluentbitconfigcheck)
   * [fluentbit.service](#fluentbitservice)
   * [fluentbit.service.clean](#fluentbitserviceclean)
@@ -82,10 +81,6 @@
 ### fluentbit.config.lua_scripts
 
 Стейт для управления Lua скриптами. Lua скрипты позволяют выполнять продвинутую обработку данных.
-
-### fluentbit.config.sites
-
-Стейт управления "сайтами". Сайт обычно представляет собой конфигурационный файл из одного блока `server`, который сохраняется в `/etc/fluentbit/sites-available`, при этом сам конфигурационный файл не подключен в основном конфиге `fluentbit` для его подключения необходимо создать символическую ссылку в каталоге `/etc/fluentbit/sites-enabled`. Благодаря подобной структуре имеется возможность включать и отключать сайты не трогая сам файл конфигурации, а только создавая / удаляя символическую ссылку.
 
 ### fluentbit.config.check
 
